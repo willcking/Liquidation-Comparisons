@@ -1,0 +1,33 @@
+Logs:
+  
+  Before totalCollateralETH: 10630.629178806013179408
+  Before totalDebtETH: 8093.660042623032904515
+  Before availableBorrowsETH: 0.000000000000000000
+  Before currentLiquidationThreshold: 0.7561
+  Before ltv: 0.7082
+  Before healthFactor: 0.993100609584077736
+  
+     Flashloan for USDT(WETH-USDT): 2744500.000000
+             (use USDT to liquidate, how much to liquidate can get more profit is a critical issue)
+         My WBTC balance after liquidation: 88.71733288
+         My USDT balance after liquidation: 0.000000
+         My WETH balance after liquidation: 0.000000000000000000
+             (swap[uni_v2]: WBTC => WETH to pair, we can pay back WETH although we flashloan for USDT)
+         My WBTC balance after paying back flashloan: 1.88222924
+         My USDT balance after paying back flashloan: 0.000000
+         My WETH balance after paying back flashloan: 0.000000000000000000
+             (swap[uni_v2]: WBTC => WETH to myself)
+         My WBTC balance after swap to withdraw: 0.00000000
+         My USDT balance after swap to withdraw: 0.000000
+         My WETH balance after swap to withdraw: 29.484000505069346671
+     Profit ETH: 29.484000505069346671
+
+  After totalCollateralETH: 9154.528671088412993944
+  After totalDebtETH: 6751.750490123032904515
+  After availableBorrowsETH: 0.000000000000000000
+  After currentLiquidationThreshold: 0.7571
+  After ltv: 0.7095
+  After healthFactor: 1.026532847595607781
+
+Test result: ok. 1 passed; 0 failed; 0 skipped; finished in 454.80ms
+Ran 1 test suites: 1 tests passed, 0 failed, 0 skipped (1 total tests)
