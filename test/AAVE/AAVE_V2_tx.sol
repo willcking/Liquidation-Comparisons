@@ -3,8 +3,8 @@ pragma solidity ^0.8.19;
 import "forge-std/Test.sol";
 import "../interface.sol";
 
-// @tx hash: 0xac7df37a43fab1b130318bbb761861b8357650db2e2c6493b73d6da3d9581077
-// @profit : 43.830663994245593622 ETH
+// @tx hash: 0xac7df37a43fab1b130318bbb761861b8357650db2e2c6493b73d6da3d9581077 
+// @profit : 29.484000505069346671
 
 contract Liquidator is IUniswapV2Callee, Test {
     // The address of the borrower getting liquidated: loan of USDT collateralized with WBTC
@@ -24,27 +24,80 @@ contract Liquidator is IUniswapV2Callee, Test {
     }
 
     function test_Liquidation() public {
-        //todo
+        (uint256 totalCollateralETH, uint256 totalDebtETH, uint256 availableBorrowsETH, uint256 currentLiquidationThreshold, uint256 ltv, uint256 healthFactor) = lending_pool.getUserAccountData(Borrower_to_be_liquidated);
+
+        console.log();
+        emit log_named_decimal_uint(
+            "Before totalCollateralETH", totalCollateralETH, 18
+        );
+        emit log_named_decimal_uint(
+            "Before totalDebtETH", totalDebtETH, 18
+        );
+        emit log_named_decimal_uint(
+            "Before availableBorrowsETH", availableBorrowsETH, 18
+        );
+        emit log_named_decimal_uint(
+            "Before currentLiquidationThreshold", currentLiquidationThreshold, 4
+        );
+        emit log_named_decimal_uint(
+            "Before ltv", ltv, 4
+        );
+        emit log_named_decimal_uint(
+            "Before healthFactor", healthFactor, 18
+        );
+        console.log();
+
+        uint256 balanceBeforeLiquidation = address(this).balance;
+        this.Liquidation();
+        uint256 balanceAfterLiquidation = address(this).balance;
+        emit log_named_decimal_uint(
+            "   Profit ETH", balanceAfterLiquidation - balanceBeforeLiquidation, 18
+        );
+
+        console.log();
+        (totalCollateralETH, totalDebtETH, availableBorrowsETH, currentLiquidationThreshold, ltv, healthFactor) = lending_pool.getUserAccountData(Borrower_to_be_liquidated);
+        emit log_named_decimal_uint(
+            "After totalCollateralETH", totalCollateralETH, 18
+        );
+        emit log_named_decimal_uint(
+            "After totalDebtETH", totalDebtETH, 18
+        );
+        emit log_named_decimal_uint(
+            "After availableBorrowsETH", availableBorrowsETH, 18
+        );
+        emit log_named_decimal_uint(
+            "After currentLiquidationThreshold", currentLiquidationThreshold, 4
+        );
+        emit log_named_decimal_uint(
+            "After ltv", ltv, 4
+        );
+        emit log_named_decimal_uint(
+            "After healthFactor", healthFactor, 18
+        );
     }
     
     // required by the testing script, entry for your liquidation call
     function Liquidation() external {
         (, , , , , uint256 healthFactor) = lending_pool.getUserAccountData(Borrower_to_be_liquidated);
         require(healthFactor < 1e18, "health factor should below 1 before liquidation");
-
-        uint256 flashloan_for_usdt = ;
-        emit log_named_decimal_uint("Flashloan for USDT(WETH-USDT)", flashloan_for_usdt, 6);
+                                          
+        uint256 flashloan_for_usdt = 2744500000000;
+        emit log_named_decimal_uint(
+            "   Flashloan for USDT(WETH-USDT)", flashloan_for_usdt, 6
+            );
 
         // flashloan and do the liquidation in the uniswapV2Call()
         weth_usdt_uniswap.swap(0, flashloan_for_usdt, address(this), "Go to the uniswapV2Call()");
 
-        uint256 my_wbtc_blanace = WBTC.balanceOf(address(this));
+        uint256 my_wbtc_balance = WBTC.balanceOf(address(this));
         WBTC.approve(address(uniswap_router), type(uint256).max);
         address[] memory pair = new address[](2);
         pair[0] = address(WBTC);
         pair[1] = address(WETH);
 
-        console.log('---------- swap WBTC to WETH  ----------');
+        console.log(
+            "           (swap[uni_v2]: WBTC => WETH to myself)"
+        );
         uniswap_router.swapExactTokensForTokens(my_wbtc_balance, 0, pair, address(this), type(uint64).max);
 
         my_wbtc_balance = WBTC.balanceOf(address(this));
@@ -67,11 +120,12 @@ contract Liquidator is IUniswapV2Callee, Test {
         WETH.withdraw(weth_balance);
     }
 
-    function uniswapCall(address, uint256, uint256 amount1, bytes calldata) external override {
+    function uniswapV2Call(address, uint256, uint256 amount1, bytes calldata) external override {
         USDT.approve(address(lending_pool), type(uint256).max);
+        (uint112 reserves_weth, uint112 reserves_usdt, ) = IUniswapV2Pair(msg.sender).getReserves();
 
         // amount1 is the amount we want to liquidate
-        lending_pool.liquidationCall(address(WBTC), address(WETH), Borrower_to_be_liquidated, amount1, false);
+        lending_pool.liquidationCall(address(WBTC), address(USDT), Borrower_to_be_liquidated, amount1, false);
 
          console.log("           (use USDT to liquidate, how much to liquidate can get more profit is a critical issue)");
 
